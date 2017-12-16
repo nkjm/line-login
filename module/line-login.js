@@ -124,4 +124,4 @@ class LineLogin {
     }
 }
 
-module.exports = ServiceLineLogin;
+module.exports = LineLogin;
