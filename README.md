@@ -41,7 +41,7 @@ router.get("/callback", login.callback((req, res, next, login_response) => {
 
 # Reference
 
-For more detailed configuration, refer to [API reference](./docs/index.html).
+For more detailed configuration, refer to [API reference](https://nkjm.github.io/line-login/LineLogin.html).
 
 # License
 
