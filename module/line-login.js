@@ -54,7 +54,7 @@ class LineLogin {
             const redirect_uri = encodeURIComponent(this.callback_url);
             const scope = encodeURIComponent(this.scope);
             const bot_prompt = encodeURIComponent(this.bot_prompt);
-            const state = req.session.line_login_state = encodeURIComponent(ServiceLineLogin._generate_state());
+            const state = req.session.line_login_state = encodeURIComponent(LineLogin._generate_state());
             let url = `https://access.line.me/oauth2/${api_version}/authorize?response_type=code&client_id=${client_id}&redirect_uri=${redirect_uri}&scope=${scope}&bot_prompt=${bot_prompt}&state=${state}`;
             if (nonce) url += encodeURIComponent(nonce);
             debug(`Redirecting to ${url}.`);
