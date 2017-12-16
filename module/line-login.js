@@ -107,10 +107,12 @@ class LineLogin {
                                 algorithms: ["HS256"]
                             }
                         );
+                        debug("id token verification succeeded.");
                         token_response.id_token = decoded_id_token;
                     } catch(exception) {
-                        if (f) return f(req, res, next, new Error("Verifying id token failed."));
-                        throw new Error("Verifying id token failed.");
+                        debug("id token verification failed.");
+                        if (f) return f(req, res, next, new Error("Verification of id token failed."));
+                        throw new Error("Verification of id token failed.");
                     }
                 }
                 s(req, res, next, token_response);
