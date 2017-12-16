@@ -16,7 +16,7 @@ Promise.promisifyAll(request);
 @prop {String} channel_secret - LINE Channel secret
 @prop {String} callback_url - LINE Callback URL
 @prop {String} scope - Permission to ask user to approve. Supported values are "profile" and "openid".
-@prop {String} prompt - Used to force the consent screen to be displayed even if the user has already granted all requested permissions.
+@prop {String} prompt - Used to force the consent screen to be displayed even if the user has already granted all requested permissions. Supported value is "concent".
 @prop {string} bot_prompt - Displays an option to add a bot as a friend during login. Set value to either normal or aggressive. Supported values are "normal" and "aggressive".
 @prop {Object} session_options - Option object for express-session. Refer to https://github.com/expressjs/session for detail.
 @prop {Boolean} verify_id_token - Used to verify id token in token response. Default is true.
@@ -29,7 +29,7 @@ class LineLogin {
     @param {String} options.channel_secret - LINE Channel secret
     @param {String} options.callback_url - LINE Callback URL
     @param {String} [options.scope="profile openid"] - Permission to ask user to approve. Supported values are "profile" and "openid".
-    @param {String} [options.prompt="consent"] - Used to force the consent screen to be displayed even if the user has already granted all requested permissions.
+    @param {String} [options.prompt] - Used to force the consent screen to be displayed even if the user has already granted all requested permissions. Supported value is "concent".
     @param {string} [options.bot_prompt="normal"] - Displays an option to add a bot as a friend during login. Set value to either normal or aggressive. Supported values are "normal" and "aggressive".
     @param {Object} [options.session_options] - Option object for express-session. Refer to https://github.com/expressjs/session for detail.
     @param {Boolean} [options.verify_id_token=true] - Used to verify id token in token response. Default is true.
@@ -39,14 +39,19 @@ class LineLogin {
         this.channel_secret = options.channel_secret;
         this.callback_url = options.callback_url;
         this.scope = options.scope || "profile openid";
-        this.prompt = options.prompt || "consent";
+        this.prompt = options.prompt;
         this.bot_prompt = options.bot_prompt || "normal";
         this.session_options = options.session_options || {
             secret: options.channel_secret,
             resave: false,
             saveUninitialized: false
         }
-        this.verify_id_token = options.verify_id_token || true;
+        if (typeof options.verify_id_token === "undefined"){
+            this.verify_id_token = true;
+        } else {
+            this.verify_id_token = options.verify_id_token;
+        }
+
         router.use(session(this.session_options));
     }
 
@@ -64,8 +69,9 @@ class LineLogin {
             const prompt = encodeURIComponent(this.prompt);
             const bot_prompt = encodeURIComponent(this.bot_prompt);
             const state = req.session.line_login_state = encodeURIComponent(LineLogin._generate_state());
-            let url = `https://access.line.me/oauth2/${api_version}/authorize?response_type=code&client_id=${client_id}&redirect_uri=${redirect_uri}&scope=${scope}&prompt=${prompt}&bot_prompt=${bot_prompt}&state=${state}`;
-            if (nonce) url += encodeURIComponent(nonce);
+            let url = `https://access.line.me/oauth2/${api_version}/authorize?response_type=code&client_id=${client_id}&redirect_uri=${redirect_uri}&scope=${scope}&bot_prompt=${bot_prompt}&state=${state}`;
+            if (options.prompt) url += `&prompt=${encodeURIComponent(options.prompt)}`;
+            if (nonce) url += `&nonce=${encodeURIComponent(nonce)}`;
             debug(`Redirecting to ${url}.`);
             return res.redirect(url);
         });
