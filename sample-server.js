@@ -1,25 +1,3 @@
-# Overview
-
-This is a SDK to use LINE Login inside the node.js based application on top of express framework.
-
-# Getting started
-
-### Create channel
-
-Go to [LINE developers console](https://developers.line.me) and create your channel for LINE Login. You need to configure callback URL in this site.
-
-### Installation
-
-```
-$ npm install --save line-login
-
-// You may also want to install JWT library to decode id token.
-$ npm install --save jsonwebtoken
-```
-
-### Server/Router configuration
-
-```javascript
 "use strict";
 
 const app = require('express')();
@@ -46,12 +24,3 @@ app.get("/callback", login.callback((req, res, next, login_response) => {
     let id_token = jwt.decode(JSON.parse(login_response).id_token, {json:true});
     res.json(id_token);
 }));
-```
-
-# Reference
-
-For more detailed configuration, refer to [API reference](https://nkjm.github.io/line-login/LineLogin.html).
-
-# License
-
-[MIT](./LICENSE)
