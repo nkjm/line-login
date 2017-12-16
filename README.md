@@ -4,6 +4,10 @@ This is a SDK to use LINE Login inside the node.js based application on top of e
 
 # Getting started
 
+### Create channel
+
+Go to [LINE developers console](https://developers.line.me) and create your channel for LINE Login. You need to configure callback URL in this site.
+
 ### Installation
 
 ```
