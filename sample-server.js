@@ -14,6 +14,7 @@ const login = new line_login({
     channel_secret: process.env.LINE_LOGIN_CHANNEL_SECRET,
     callback_url: process.env.LINE_LOGIN_CALLBACK_URL,
     scope: "openid profile",
+    prompt: "concent",
     bot_prompt: "normal"
 });
 
