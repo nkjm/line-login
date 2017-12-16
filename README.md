@@ -12,9 +12,6 @@ Go to [LINE developers console](https://developers.line.me) and create your chan
 
 ```
 $ npm install --save line-login
-
-// You may also want to install JWT library to decode id token.
-$ npm install --save jsonwebtoken
 ```
 
 ### Server/Router configuration
@@ -24,7 +21,6 @@ $ npm install --save jsonwebtoken
 
 const app = require('express')();
 const line_login = require("line-login");
-const jwt = require("jsonwebtoken");
 
 const login = new line_login({
     channel_id: process.env.LINE_LOGIN_CHANNEL_ID,
@@ -42,9 +38,12 @@ app.listen(process.env.PORT || 5000, () => {
 app.get("/", login.auth());
 
 // Specify the path you want to wait for the callback from LINE authorization endpoint.
-app.get("/callback", login.callback((req, res, next, login_response) => {
-    let id_token = jwt.decode(JSON.parse(login_response).id_token, {json:true});
-    res.json(id_token);
+app.get("/callback", login.callback((req, res, next, token_response) => {
+    // Success callback
+    res.json(token_response);
+},(req, res, next, error) => {
+    // Failure callback
+    res.status(400).json(error);
 }));
 ```
 
