@@ -12,14 +12,6 @@ Promise.promisifyAll(request);
 
 /**
 @class
-@prop {String} channel_id - LINE Channel Id
-@prop {String} channel_secret - LINE Channel secret
-@prop {String} callback_url - LINE Callback URL
-@prop {String} scope - Permission to ask user to approve. Supported values are "profile" and "openid".
-@prop {String} prompt - Used to force the consent screen to be displayed even if the user has already granted all requested permissions. Supported value is "concent".
-@prop {string} bot_prompt - Displays an option to add a bot as a friend during login. Set value to either normal or aggressive. Supported values are "normal" and "aggressive".
-@prop {Object} session_options - Option object for express-session. Refer to https://github.com/expressjs/session for detail.
-@prop {Boolean} verify_id_token - Used to verify id token in token response. Default is true.
 */
 class LineLogin {
     /**
