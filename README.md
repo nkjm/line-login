@@ -36,10 +36,10 @@ app.listen(process.env.PORT || 5000, () => {
 });
 
 // Specify the path you want to start authorization.
-app.get("/", login.auth());
+app.use("/", login.auth());
 
 // Specify the path you want to wait for the callback from LINE authorization endpoint.
-app.get("/callback", login.callback((req, res, next, token_response) => {
+app.use("/callback", login.callback((req, res, next, token_response) => {
     // Success callback
     res.json(token_response);
 },(req, res, next, error) => {
