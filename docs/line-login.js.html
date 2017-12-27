@@ -80,19 +80,12 @@ class LineLogin {
     Mount this middleware to the path you like to initiate authorization.
     @method
     @param {String} [nonce] - String to prevent reply attack.
+    @return {Function}
     */
     auth(nonce){
         router.get("/", (req, res, next) => {
-            const client_id = encodeURIComponent(this.channel_id);
-            const redirect_uri = encodeURIComponent(this.callback_url);
-            const scope = encodeURIComponent(this.scope);
-            const prompt = encodeURIComponent(this.prompt);
-            const bot_prompt = encodeURIComponent(this.bot_prompt);
-            const state = req.session.line_login_state = encodeURIComponent(LineLogin._generate_state());
-            let url = `https://access.line.me/oauth2/${api_version}/authorize?response_type=code&amp;client_id=${client_id}&amp;redirect_uri=${redirect_uri}&amp;scope=${scope}&amp;bot_prompt=${bot_prompt}&amp;state=${state}`;
-            if (this.prompt) url += `&amp;prompt=${encodeURIComponent(this.prompt)}`;
-            if (nonce) url += `&amp;nonce=${encodeURIComponent(nonce)}`;
-            debug(`Redirecting to ${url}.`);
+            let state = req.session.line_login_state = encodeURIComponent(LineLogin._generate_state());
+            let url = this.make_auth_url(state, nonce);
             return res.redirect(url);
         });
         return router;
@@ -121,7 +114,7 @@ class LineLogin {
             }
             debug("Authorization succeeded.");
 
-            this._get_access_token(code).then((token_response) => {
+            this.issue_access_token(code).then((token_response) => {
                 if (this.verify_id_token &amp;&amp; token_response.id_token){
                     let decoded_id_token;
                     try {
@@ -152,7 +145,31 @@ class LineLogin {
         return router;
     }
 
-    _get_access_token(code){
+    /**
+    Method to make authorization URL
+    @method
+    @param {String} [nonce] - A string used to prevent replay attacks. This value is returned in an ID token.
+    @return {String}
+    */
+    make_auth_url(state, nonce){
+        const client_id = encodeURIComponent(this.channel_id);
+        const redirect_uri = encodeURIComponent(this.callback_url);
+        const scope = encodeURIComponent(this.scope);
+        const prompt = encodeURIComponent(this.prompt);
+        const bot_prompt = encodeURIComponent(this.bot_prompt);
+        let url = `https://access.line.me/oauth2/${api_version}/authorize?response_type=code&amp;client_id=${client_id}&amp;redirect_uri=${redirect_uri}&amp;scope=${scope}&amp;bot_prompt=${bot_prompt}&amp;state=${state}`;
+        if (this.prompt) url += `&amp;prompt=${encodeURIComponent(this.prompt)}`;
+        if (nonce) url += `&amp;nonce=${encodeURIComponent(nonce)}`;
+        return url
+    }
+
+    /**
+    Method to retrieve access token using authorization code.
+    @method
+    @param {String} code - Authorization code
+    @return {Object}
+    */
+    issue_access_token(code){
         const url = `https://api.line.me/oauth2/${api_version}/token`;
         const form = {
             grant_type: "authorization_code",
@@ -172,6 +189,122 @@ class LineLogin {
         });
     }
 
+    /**
+    Method to verify the access token.
+    @method
+    @param {String} access_token - Access token
+    @return {Object}
+    */
+    verify_access_token(access_token){
+        const url = `https://api.line.me/oauth2/${api_version}/verify?access_token=${encodeURIComponent(access_token)}`;
+        return request.getAsync({
+            url: url
+        }).then((response) => {
+            if (response.statusCode == 200){
+                return JSON.parse(response.body);
+            }
+            return Promise.reject(new Error(response.statusMessage));
+        });
+    }
+
+    /**
+    Method to get a new access token using a refresh token.
+    @method
+    @param {String} refresh_token - Refresh token.
+    @return {Object}
+    */
+    refresh_access_token(refresh_token){
+        const url = `https://api.line.me/oauth2/${api_version}/token`;
+        const form = {
+            grant_type: "refresh_token",
+            refresh_token: refresh_token,
+            client_id: this.channel_id,
+            client_secret: this.channel_secret
+        }
+        return request.postAsync({
+            url: url,
+            form: form
+        }).then((response) => {
+            if (response.statusCode == 200){
+                return JSON.parse(response.body);
+            }
+            return Promise.reject(new Error(response.statusMessage));
+        });
+    }
+
+    /**
+    Method to invalidate the access token.
+    @method
+    @param {String} access_token - Access token.
+    @return {Null}
+    */
+    revoke_access_token(access_token){
+        const url = `https://api.line.me/oauth2/${api_version}/revoke`;
+        const form = {
+            access_token: access_token,
+            client_id: this.channel_id,
+            client_secret: this.channel_secret
+        }
+        return request.postAsync({
+            url: url,
+            form: form
+        }).then((response) => {
+            if (response.statusCode == 200){
+                return null;
+            }
+            return Promise.reject(new Error(response.statusMessage));
+        });
+    }
+
+    /**
+    Method to get user's display name, profile image, and status message.
+    @method
+    @param {String} access_token - Access token.
+    @return {Object}
+    */
+    get_user_profile(access_token){
+        const url = `https://api.line.me/v2/profile`;
+        const headers = {
+            Authorization: "Bearer " + access_token
+        }
+        return request.getAsync({
+            url: url,
+            headers: headers
+        }).then((response) => {
+            if (response.statusCode == 200){
+                return JSON.parse(response.body);
+            }
+            return Promise.reject(new Error(response.statusMessage));
+        });
+    }
+
+    /**
+    Method to get the friendship status of the user and the bot linked to your LNIE Login channel.
+    @method
+    @param {String} access_token - Access token.
+    @return {Object}
+    */
+    get_friendship_status(access_token){
+        const url = `https://api.line.me/friendship/v1/status`;
+        const headers = {
+            Authorization: "Bearer " + access_token
+        }
+        return request.getAsync({
+            url: url,
+            headers: headers
+        }).then((response) => {
+            if (response.statusCode == 200){
+                return JSON.parse(response.body);
+            }
+            return Promise.reject(new Error(response.statusMessage));
+        });
+    }
+
+    /**
+    Method to generate random number.
+    @method
+    @return {Number}
+    */
     static _generate_state(){
         let max = 999999999;
         let min = 100000000;
@@ -196,7 +329,7 @@ module.exports = LineLogin;
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Fri Dec 22 2017 12:52:32 GMT+0900 (JST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Wed Dec 27 2017 16:34:41 GMT+0900 (JST)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -1,5 +1,7 @@
 "use strict";
 
+require("dotenv").config();
+
 const app = require('express')();
 
 let line_login

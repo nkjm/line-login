@@ -1,3 +1,5 @@
+![Build Status](https://travis-ci.org/nkjm/line-login.svg?branch=master)
+
 # Overview
 
 This is a SDK to use LINE Login inside the node.js based application on top of express framework.
