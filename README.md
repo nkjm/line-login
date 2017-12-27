@@ -56,4 +56,4 @@ For more detailed configuration, refer to [API reference](https://nkjm.github.io
 
 # License
 
-[MIT](./LICENSE)
+[Apache 2.0](./LICENSE)
