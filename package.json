@@ -1,6 +1,6 @@
 {
   "name": "line-login",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "SDK to use LINE Login in express based node.js application",
   "main": "index.js",
   "private": false,
@@ -17,7 +17,7 @@
     "OAuth"
   ],
   "author": "Kazuki Nakajima",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/nkjm/line-login/issues"
   },
