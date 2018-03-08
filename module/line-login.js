@@ -20,7 +20,7 @@ class LineLogin {
     @param {String} options.channel_id - LINE Channel Id
     @param {String} options.channel_secret - LINE Channel secret
     @param {String} options.callback_url - LINE Callback URL
-    @param {String} [options.scope="profile openid"] - Permission to ask user to approve. Supported values are "profile" and "openid".
+    @param {String} [options.scope="profile openid"] - Permission to ask user to approve. Supported values are "profile", "openid" and "email". To specify email, you need to request approval to LINE.
     @param {String} [options.prompt] - Used to force the consent screen to be displayed even if the user has already granted all requested permissions. Supported value is "concent".
     @param {string} [options.bot_prompt="normal"] - Displays an option to add a bot as a friend during login. Set value to either normal or aggressive. Supported values are "normal" and "aggressive".
     @param {Object} [options.session_options] - Option object for express-session. Refer to https://github.com/expressjs/session for detail.
