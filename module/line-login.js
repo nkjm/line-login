@@ -70,13 +70,12 @@ class LineLogin {
     Middlware to initiate OAuth2 flow by redirecting user to LINE authorization endpoint.
     Mount this middleware to the path you like to initiate authorization.
     @method
-    @param {String} [nonce] - String to prevent reply attack.
     @return {Function}
     */
-    auth(nonce){
+    auth(){
         router.get("/", (req, res, next) => {
             let state = req.session.line_login_state = LineLogin._random();
-            //let nonce = req.session.line_login_nonce = LineLogin._random();
+            let nonce = req.session.line_login_nonce = LineLogin._random();
             let url = this.make_auth_url(state, nonce);
             return res.redirect(url);
         });
@@ -100,7 +99,7 @@ class LineLogin {
                 debug("Authorization failed.");
                 return f(new Error("Authorization failed."));
             }
-            if (!secure_compare(req.session.line_login_state, state){
+            if (!secure_compare(req.session.line_login_state, state)){
                 debug("Authorization failed. State does not match.");
                 return f(new Error("Authorization failed. State does not match."));
             }
@@ -119,6 +118,9 @@ class LineLogin {
                                 algorithms: ["HS256"]
                             }
                         );
+                        if (!secure_compare(decoded_id_token.nonce, req.session.line_login_nonce)){
+                            throw new Error("Nonce does not match.");
+                        }
                         debug("id token verification succeeded.");
                         token_response.id_token = decoded_id_token;
                     } catch(exception) {
