@@ -5,6 +5,8 @@ const debug = require("debug")("line-login");
 const request = require("request");
 const session = require("express-session");
 const jwt = require("jsonwebtoken");
+const secure_compare = require("secure-compare");
+const crypto = require("crypto");
 const api_version = "v2.1";
 
 Promise = require("bluebird");
@@ -73,7 +75,8 @@ class LineLogin {
     */
     auth(nonce){
         router.get("/", (req, res, next) => {
-            let state = req.session.line_login_state = encodeURIComponent(LineLogin._generate_state());
+            let state = req.session.line_login_state = LineLogin._random();
+            //let nonce = req.session.line_login_nonce = LineLogin._random();
             let url = this.make_auth_url(state, nonce);
             return res.redirect(url);
         });
@@ -97,7 +100,7 @@ class LineLogin {
                 debug("Authorization failed.");
                 return f(new Error("Authorization failed."));
             }
-            if (req.session.line_login_state !== state){
+            if (!secure_compare(req.session.line_login_state, state){
                 debug("Authorization failed. State does not match.");
                 return f(new Error("Authorization failed. State does not match."));
             }
@@ -290,14 +293,12 @@ class LineLogin {
     }
 
     /**
-    Method to generate random number.
+    Method to generate random string.
     @method
     @return {Number}
     */
-    static _generate_state(){
-        let max = 999999999;
-        let min = 100000000;
-        return Math.floor(Math.random() * (max - min + 1) ) + min;
+    static _random(){
+        return crypto.randomBytes(20).toString('hex');
     }
 }
 
