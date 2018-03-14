@@ -1,9 +1,7 @@
 "use strict";
 
-const router = require("express").Router();
-const debug = require("debug")("line-login");
+const debug = require("debug")("line-login:module");
 const request = require("request");
-const session = require("express-session");
 const jwt = require("jsonwebtoken");
 const secure_compare = require("secure-compare");
 const crypto = require("crypto");
@@ -25,7 +23,6 @@ class LineLogin {
     @param {String} [options.scope="profile openid"] - Permission to ask user to approve. Supported values are "profile", "openid" and "email". To specify email, you need to request approval to LINE.
     @param {String} [options.prompt] - Used to force the consent screen to be displayed even if the user has already granted all requested permissions. Supported value is "concent".
     @param {string} [options.bot_prompt="normal"] - Displays an option to add a bot as a friend during login. Set value to either normal or aggressive. Supported values are "normal" and "aggressive".
-    @param {Object} [options.session_options] - Option object for express-session. Refer to https://github.com/expressjs/session for detail.
     @param {Boolean} [options.verify_id_token=true] - Used to verify id token in token response. Default is true.
     */
     constructor(options){
@@ -52,18 +49,11 @@ class LineLogin {
         this.scope = options.scope || "profile openid";
         this.prompt = options.prompt;
         this.bot_prompt = options.bot_prompt || "normal";
-        this.session_options = options.session_options || {
-            secret: options.channel_secret,
-            resave: false,
-            saveUninitialized: false
-        }
         if (typeof options.verify_id_token === "undefined"){
             this.verify_id_token = true;
         } else {
             this.verify_id_token = options.verify_id_token;
         }
-
-        router.use(session(this.session_options));
     }
 
     /**
@@ -73,13 +63,12 @@ class LineLogin {
     @return {Function}
     */
     auth(){
-        router.get("/", (req, res, next) => {
+        return (req, res, next) => {
             let state = req.session.line_login_state = LineLogin._random();
             let nonce = req.session.line_login_nonce = LineLogin._random();
             let url = this.make_auth_url(state, nonce);
             return res.redirect(url);
-        });
-        return router;
+        }
     }
 
     /**
@@ -90,7 +79,7 @@ class LineLogin {
     @param {Function} f - Callback function on failure.
     */
     callback(s, f){
-        router.get("/callback", (req, res, next) => {
+        return (req, res, next) => {
             const code = req.query.code;
             const state = req.query.state;
             const friendship_status_changed = req.query.friendship_status_changed;
@@ -135,8 +124,7 @@ class LineLogin {
                 if (f) return f(req, res, next, error);
                 throw error;
             });
-        });
-        return router;
+        }
     }
 
     /**

@@ -3,8 +3,15 @@
 require("dotenv").config();
 
 const app = require('express')();
+const session = require("express-session");
+const session_options = {
+    secret: process.env.LINE_LOGIN_CHANNEL_SECRET,
+    resave: false,
+    saveUninitialized: false
+}
+app.use(session(session_options));
 
-let line_login
+let line_login;
 if (process.env.NODE_ENV == "development"){
     line_login = require("./module/line-login");
 } else {
@@ -25,13 +32,16 @@ app.listen(process.env.PORT || 5000, () => {
 });
 
 // Specify the path you want to start authorization.
-app.use("/", login.auth());
+app.get("/", login.auth());
 
 // Specify the path you want to wait for the callback from LINE authorization endpoint.
-app.use("/callback", login.callback((req, res, next, token_response) => {
-    // Success callback
-    res.json(token_response);
-},(req, res, next, error) => {
-    // Failure callback
-    res.status(400).json(error);
-}));
+app.get("/callback", login.callback(
+    (req, res, next, token_response) => {
+        // Success callback
+        res.json(token_response);
+    },
+    (req, res, next, error) => {
+        // Failure callback
+        res.status(400).json(error);
+    }
+));

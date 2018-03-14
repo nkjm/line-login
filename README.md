@@ -13,7 +13,7 @@ Go to [LINE developers console](https://developers.line.me) and create your chan
 ### Installation
 
 ```
-$ npm install --save line-login
+$ npm install --save line-login express express-session
 ```
 
 ### Server/Router configuration
@@ -23,6 +23,13 @@ $ npm install --save line-login
 
 const app = require('express')();
 const line_login = require("line-login");
+const session = require("express-session");
+const session_options = {
+    secret: process.env.LINE_LOGIN_CHANNEL_SECRET,
+    resave: false,
+    saveUninitialized: false
+}
+app.use(session(session_options));
 
 const login = new line_login({
     channel_id: process.env.LINE_LOGIN_CHANNEL_ID,
@@ -41,13 +48,16 @@ app.listen(process.env.PORT || 5000, () => {
 app.use("/", login.auth());
 
 // Specify the path you want to wait for the callback from LINE authorization endpoint.
-app.use("/callback", login.callback((req, res, next, token_response) => {
-    // Success callback
-    res.json(token_response);
-},(req, res, next, error) => {
-    // Failure callback
-    res.status(400).json(error);
-}));
+app.use("/callback", login.callback(
+    (req, res, next, token_response) => {
+        // Success callback
+        res.json(token_response);
+    },
+    (req, res, next, error) => {
+        // Failure callback
+        res.status(400).json(error);
+    }
+));
 ```
 
 # Reference
