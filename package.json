@@ -1,6 +1,6 @@
 {
   "name": "line-login",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "SDK to use LINE Login in express based node.js application",
   "main": "index.js",
   "private": false,

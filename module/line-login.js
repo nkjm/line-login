@@ -7,7 +7,7 @@ const secure_compare = require("secure-compare");
 const crypto = require("crypto");
 const api_version = "v2.1";
 
-Promise = require("bluebird");
+let Promise = require("bluebird");
 Promise.promisifyAll(request);
 
 /**
