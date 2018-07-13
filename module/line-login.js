@@ -80,17 +80,21 @@ class LineLogin {
     */
     callback(s, f){
         return (req, res, next) => {
+            const f_ = (error) => {
+                if (f) f(req, res, next, error);
+                else throw error;
+            };
             const code = req.query.code;
             const state = req.query.state;
             const friendship_status_changed = req.query.friendship_status_changed;
 
             if (!code){
                 debug("Authorization failed.");
-                return f(new Error("Authorization failed."));
+                return f_(new Error("Authorization failed."));
             }
             if (!secure_compare(req.session.line_login_state, state)){
                 debug("Authorization failed. State does not match.");
-                return f(new Error("Authorization failed. State does not match."));
+                return f_(new Error("Authorization failed. State does not match."));
             }
             debug("Authorization succeeded.");
 
@@ -114,15 +118,13 @@ class LineLogin {
                         token_response.id_token = decoded_id_token;
                     } catch(exception) {
                         debug("id token verification failed.");
-                        if (f) return f(req, res, next, new Error("Verification of id token failed."));
-                        throw new Error("Verification of id token failed.");
+                        f_(new Error("Verification of id token failed."));
                     }
                 }
                 s(req, res, next, token_response);
             }).catch((error) => {
                 debug(error);
-                if (f) return f(req, res, next, error);
-                throw error;
+                f_(error);
             });
         }
     }
