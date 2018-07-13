@@ -121,6 +121,8 @@ class LineLogin {
                         f_(new Error("Verification of id token failed."));
                     }
                 }
+                delete req.session.line_login_state;
+                delete req.session.line_login_nonce;
                 s(req, res, next, token_response);
             }).catch((error) => {
                 debug(error);
