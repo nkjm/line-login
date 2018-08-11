@@ -22,8 +22,9 @@ class LineLogin {
     @param {String} options.callback_url - LINE Callback URL
     @param {String} [options.scope="profile openid"] - Permission to ask user to approve. Supported values are "profile", "openid" and "email". To specify email, you need to request approval to LINE.
     @param {String} [options.prompt] - Used to force the consent screen to be displayed even if the user has already granted all requested permissions. Supported value is "concent".
-    @param {string} [options.bot_prompt="normal"] - Displays an option to add a bot as a friend during login. Set value to either normal or aggressive. Supported values are "normal" and "aggressive".
+    @param {String} [options.bot_prompt="normal"] - Displays an option to add a bot as a friend during login. Set value to either normal or aggressive. Supported values are "normal" and "aggressive".
     @param {Boolean} [options.verify_id_token=true] - Used to verify id token in token response. Default is true.
+    @param {String} [options.endpoint="line.me"] - Test purpose only. Change API endpoint hostname.
     */
     constructor(options){
         const required_params = ["channel_id", "channel_secret", "callback_url"];
@@ -54,6 +55,7 @@ class LineLogin {
         } else {
             this.verify_id_token = options.verify_id_token;
         }
+        this.endpoint = options.endpoint || "line.me";
     }
 
     /**
@@ -143,7 +145,7 @@ class LineLogin {
         const scope = encodeURIComponent(this.scope);
         const prompt = encodeURIComponent(this.prompt);
         const bot_prompt = encodeURIComponent(this.bot_prompt);
-        let url = `https://access.line.me/oauth2/${api_version}/authorize?response_type=code&client_id=${client_id}&redirect_uri=${redirect_uri}&scope=${scope}&bot_prompt=${bot_prompt}&state=${state}`;
+        let url = `https://access.${this.endpoint}/oauth2/${api_version}/authorize?response_type=code&client_id=${client_id}&redirect_uri=${redirect_uri}&scope=${scope}&bot_prompt=${bot_prompt}&state=${state}`;
         if (this.prompt) url += `&prompt=${encodeURIComponent(this.prompt)}`;
         if (nonce) url += `&nonce=${encodeURIComponent(nonce)}`;
         return url
@@ -156,7 +158,7 @@ class LineLogin {
     @return {Object}
     */
     issue_access_token(code){
-        const url = `https://api.line.me/oauth2/${api_version}/token`;
+        const url = `https://api.${this.endpoint}/oauth2/${api_version}/token`;
         const form = {
             grant_type: "authorization_code",
             code: code,
@@ -182,7 +184,7 @@ class LineLogin {
     @return {Object}
     */
     verify_access_token(access_token){
-        const url = `https://api.line.me/oauth2/${api_version}/verify?access_token=${encodeURIComponent(access_token)}`;
+        const url = `https://api.${this.endpoint}/oauth2/${api_version}/verify?access_token=${encodeURIComponent(access_token)}`;
         return request.getAsync({
             url: url
         }).then((response) => {
@@ -200,7 +202,7 @@ class LineLogin {
     @return {Object}
     */
     refresh_access_token(refresh_token){
-        const url = `https://api.line.me/oauth2/${api_version}/token`;
+        const url = `https://api.${this.endpoint}/oauth2/${api_version}/token`;
         const form = {
             grant_type: "refresh_token",
             refresh_token: refresh_token,
@@ -225,7 +227,7 @@ class LineLogin {
     @return {Null}
     */
     revoke_access_token(access_token){
-        const url = `https://api.line.me/oauth2/${api_version}/revoke`;
+        const url = `https://api.${this.endpoint}/oauth2/${api_version}/revoke`;
         const form = {
             access_token: access_token,
             client_id: this.channel_id,
@@ -249,7 +251,7 @@ class LineLogin {
     @return {Object}
     */
     get_user_profile(access_token){
-        const url = `https://api.line.me/v2/profile`;
+        const url = `https://api.${this.endpoint}/v2/profile`;
         const headers = {
             Authorization: "Bearer " + access_token
         }
@@ -271,7 +273,7 @@ class LineLogin {
     @return {Object}
     */
     get_friendship_status(access_token){
-        const url = `https://api.line.me/friendship/v1/status`;
+        const url = `https://api.${this.endpoint}/friendship/v1/status`;
         const headers = {
             Authorization: "Bearer " + access_token
         }
