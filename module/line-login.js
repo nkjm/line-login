@@ -28,7 +28,7 @@ class LineLogin {
     */
     constructor(options){
         const required_params = ["channel_id", "channel_secret", "callback_url"];
-        const optional_params = ["scope", "prompt", "bot_prompt", "session_options", "verify_id_token"];
+        const optional_params = ["scope", "prompt", "bot_prompt", "session_options", "verify_id_token", "endpoint"];
 
         // Check if required parameters are all set.
         required_params.map((param) => {
